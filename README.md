@@ -9,7 +9,7 @@ Airdroppulse is a no-sign-in way to send files and text between devices on the s
 3. Run `npm start`.
 4. On this computer, open `http://localhost:3000`.
 5. To connect a phone, keep both devices on the same Wi-Fi. Find this computer's local IPv4 address with `ipconfig`, then open `http://<computer-local-IP>:3000` on the phone.
-6. Create a drop on one device and enter the six-digit code on the other.
+6. On the sending device, select **Generate 6-digit code**. On the receiving device, enter that code. Keep both devices on the same Wi-Fi.
 
 The app listens on the local network so your phone can reach it. If Windows Firewall prompts you, allow access on **Private networks only**. Do not expose this app or its port to the public internet. The pairing code is a temporary shared code, not an account or a CAPTCHA.
 

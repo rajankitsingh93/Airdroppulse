@@ -48,17 +48,17 @@
         <div class="connection-card">
           <div class="card-header">
             <div class="step-number">01</div>
-            <div><h2>Make a connection</h2><p>Start a drop here, then join from your other device.</p></div>
+            <div><h2>Connect on the same Wi-Fi</h2><p>Sender: generate a code. Receiver: enter that code to connect.</p></div>
           </div>
 
           <div class="connection-actions" id="connection-actions">
             <button class="primary-button" id="create-button" type="button">
-              <span class="button-icon">＋</span> Create a drop <span class="button-arrow">↗</span>
+              <span class="button-icon">＋</span> Generate 6-digit code <span class="button-arrow">↗</span>
             </button>
             <div class="join-divider"><span>OR JOIN ONE</span></div>
             <form class="join-form" id="join-form">
-              <label class="sr-only" for="code-input">Enter the 6-digit drop code</label>
-              <input id="code-input" name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" placeholder="Enter 6-digit code" required>
+              <label class="sr-only" for="code-input">Enter the sender's 6-digit code</label>
+              <input id="code-input" name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" placeholder="Enter sender's 6-digit code" required>
               <button class="secondary-button" type="submit" aria-label="Join drop">Join <span>→</span></button>
             </form>
           </div>
@@ -73,13 +73,13 @@
             <button class="text-button" id="new-drop-button" type="button">Start over</button>
           </div>
 
-          <div class="connection-note"><span class="lock-icon">⌑</span><span>Private to your local network. Codes expire after 1 hour.</span></div>
+          <div class="connection-note"><span class="lock-icon">⌑</span><span>Both devices need the same Wi-Fi. Codes expire after 1 hour.</span></div>
         </div>
 
         <div class="transfer-card" id="transfer-card">
           <div class="card-header transfer-heading">
             <div class="step-number">02</div>
-            <div><h2>Send something</h2><p>Once connected, drop files or write a quick note.</p></div>
+            <div><h2>Send something</h2><p>Connect both devices with the code first, then send files or text.</p></div>
             <span class="ready-badge" id="ready-badge"><span></span> WAITING</span>
           </div>
           <div class="transfer-content" id="transfer-content" aria-disabled="true">

@@ -43,7 +43,7 @@ function setPaired(isPaired) {
     roomHint.textContent = "You're connected. Send something from either device.";
   } else if (currentCode) {
     roomStatusText.textContent = "Your drop is ready";
-    roomHint.textContent = "Open Airdroppulse on your other device and enter this code.";
+    roomHint.textContent = "On the receiving device, open Airdroppulse on the same Wi-Fi and enter this code.";
   }
   updateSendButton();
 }
