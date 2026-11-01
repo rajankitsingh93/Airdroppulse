@@ -147,7 +147,9 @@ h1 { margin: 19px 0 11px; font-size: clamp(42px, 5vw, 59px); line-height: 1.1; l
 .activity-details { min-width: 0; flex: 1; }
 .activity-name { overflow: hidden; color: #d9dae5; font-size: 9px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
 .activity-meta { margin-top: 4px; color: #777b8f; font: 8px var(--mono); }
-.activity-saved { flex: 0 0 auto; color: #8ad2c6; font: 8px var(--mono); }
+.activity-download { flex: 0 0 auto; padding: 7px 9px; border: 1px solid rgba(115, 229, 206, .22); border-radius: 6px; background: rgba(115, 229, 206, .07); color: #9de0d4; font: 8px var(--mono); cursor: pointer; transition: .2s; }
+.activity-download:hover:not(:disabled) { border-color: rgba(115, 229, 206, .55); background: rgba(115, 229, 206, .14); }
+.activity-download:disabled { opacity: .5; cursor: wait; }
 .footer { display: flex; justify-content: space-between; gap: 12px; margin-top: 29px; padding: 14px 0 20px; border-top: 1px solid rgba(255,255,255,.06); color: #6d7187; font: 8px var(--mono); letter-spacing: .04em; }
 .footer-separator { padding: 0 5px; color: #a795f4; }
 .footer span:last-child { text-align: right; letter-spacing: 0; }

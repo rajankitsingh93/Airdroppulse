@@ -2,7 +2,7 @@
   "name": "airdroppulse",
   "version": "1.0.0",
   "private": true,
-  "description": "A private, no-sign-in way to send files and text between devices on your local network.",
+  "description": "A no-sign-in file transfer app with temporary code pairing and 24-hour downloads.",
   "scripts": {
     "start": "node server.js"
   },

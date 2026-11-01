@@ -18,6 +18,7 @@ const sendMessageButton = document.querySelector("#send-message-button");
 const activityList = document.querySelector("#activity-list");
 const toast = document.querySelector("#toast");
 const helpDialog = document.querySelector("#help-dialog");
+const ACTIVITY_STORAGE_KEY = "airdroppulse.activity";
 
 let socket;
 let currentCode = "";
@@ -43,7 +44,7 @@ function setPaired(isPaired) {
     roomHint.textContent = "You're connected. Send something from either device.";
   } else if (currentCode) {
     roomStatusText.textContent = "Your drop is ready";
-    roomHint.textContent = "On the receiving device, open Airdroppulse on the same Wi-Fi and enter this code.";
+    roomHint.textContent = "On the receiving device, open this same website and enter the code.";
   }
   updateSendButton();
 }
@@ -64,16 +65,16 @@ function clearRoom() {
   roomCode.textContent = "------";
 }
 
-function addActivity({ fileName, size, savedTo, contentType }) {
+function addActivity({ transferId, fileName, size, contentType, expiresAt }, save = true) {
   document.querySelector("#empty-activity")?.remove();
 
   const item = document.createElement("article");
   item.className = "activity-item";
   const icon = document.createElement("div");
   icon.className = "activity-icon";
-  icon.textContent = contentType.startsWith("image/") ? "▧" :
-    contentType.startsWith("video/") ? "▷" :
-    contentType.startsWith("text/") ? "≋" : "↗";
+  icon.textContent = contentType?.startsWith("image/") ? "▧" :
+    contentType?.startsWith("video/") ? "▷" :
+    contentType?.startsWith("text/") ? "≋" : "↗";
   const details = document.createElement("div");
   details.className = "activity-details";
   const name = document.createElement("div");
@@ -81,14 +82,70 @@ function addActivity({ fileName, size, savedTo, contentType }) {
   name.textContent = fileName;
   const meta = document.createElement("div");
   meta.className = "activity-meta";
-  meta.textContent = `${formatBytes(size)} · ${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
-  const saved = document.createElement("span");
-  saved.className = "activity-saved";
-  saved.textContent = "SAVED";
-  saved.title = `Saved to ${savedTo}`;
+  meta.textContent = `${formatBytes(size)} · ${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} · stored up to 24h`;
+  const download = document.createElement("button");
+  download.className = "activity-download";
+  download.type = "button";
+  download.textContent = "Download";
+  download.addEventListener("click", async () => {
+    download.disabled = true;
+    try {
+      const response = await fetch(`/api/transfers/${encodeURIComponent(transferId)}`);
+      if (!response.ok) {
+        const result = await response.json();
+        throw new Error(result.error || "This transfer could not be downloaded.");
+      }
+      const file = await response.blob();
+      const objectUrl = URL.createObjectURL(file);
+      const link = document.createElement("a");
+      link.href = objectUrl;
+      link.download = fileName;
+      link.click();
+      window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+      showToast(`${fileName} downloaded.`);
+    } catch (error) {
+      showToast(error.message || `Could not download ${fileName}.`);
+    } finally {
+      download.disabled = false;
+    }
+  });
   details.append(name, meta);
-  item.append(icon, details, saved);
+  item.append(icon, details, download);
   activityList.prepend(item);
+  if (save) rememberActivity({ transferId, fileName, size, contentType, expiresAt });
+}
+
+function rememberActivity(activity) {
+  try {
+    const stored = JSON.parse(localStorage.getItem(ACTIVITY_STORAGE_KEY) || "[]");
+    const active = Array.isArray(stored)
+      ? stored.filter((item) => item && typeof item.expiresAt === "number" && item.expiresAt > Date.now())
+      : [];
+    active.push(activity);
+    localStorage.setItem(ACTIVITY_STORAGE_KEY, JSON.stringify(active.slice(-100)));
+  } catch {
+    showToast("Your browser couldn't save the recent-transfer list.");
+  }
+}
+
+function restoreActivity() {
+  try {
+    const stored = JSON.parse(localStorage.getItem(ACTIVITY_STORAGE_KEY) || "[]");
+    if (!Array.isArray(stored)) throw new Error("Recent transfers are invalid.");
+    const active = stored.filter((item) =>
+      item &&
+      typeof item.transferId === "string" &&
+      /^[0-9a-f-]{36}$/i.test(item.transferId) &&
+      typeof item.fileName === "string" &&
+      typeof item.size === "number" &&
+      typeof item.expiresAt === "number" &&
+      item.expiresAt > Date.now()
+    ).slice(-100);
+    for (const item of active) addActivity(item, false);
+    localStorage.setItem(ACTIVITY_STORAGE_KEY, JSON.stringify(active));
+  } catch {
+    showToast("Recent transfers couldn't be restored in this browser.");
+  }
 }
 
 function formatBytes(bytes) {
@@ -139,7 +196,7 @@ function handleSocketMessage(event) {
     showToast("The other device disconnected.");
   } else if (message.type === "transfer-complete") {
     addActivity(message);
-    showToast(`${message.fileName} saved on this computer.`);
+    showToast(`${message.fileName} is ready to download.`);
   } else if (message.type === "error") {
     createButton.disabled = false;
     showToast(message.message);
@@ -293,3 +350,4 @@ sendMessageButton.addEventListener("click", async () => {
 document.querySelector("#help-button").addEventListener("click", () => helpDialog.showModal());
 document.querySelector("#dialog-close").addEventListener("click", () => helpDialog.close());
 document.querySelector("#dialog-ok").addEventListener("click", () => helpDialog.close());
+restoreActivity();
