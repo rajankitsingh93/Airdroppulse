@@ -19,7 +19,7 @@ For internet access from anywhere, deploy the app behind HTTPS with a persistent
 2. Attach a persistent disk of at least 1 GB mounted at `/var/data`.
 3. Set `STORAGE_DIR` to `/var/data` and `MAX_STORAGE_BYTES` to `838860800` (800 MiB).
 4. Set `PUBLIC_SITE_URL` to the exact HTTPS Render service URL (for example, `https://your-service.onrender.com`). This is used for the canonical URL, sitemap, and robots file.
-5. To verify a URL-prefix property in Google Search Console using the HTML meta-tag method, set `GOOGLE_SITE_VERIFICATION` to the verification token Google gives you, then redeploy. Do not invent a token. DNS verification for a Domain property must instead be completed with your DNS provider.
+5. To verify a URL-prefix property in Google Search Console using the HTML meta-tag method, set `GOOGLE_SITE_VERIFICATION` to the verification token Google gives you, then redeploy. The token currently configured in the app is the site's public verification token; replace it if Google gives you a different one. DNS verification for a Domain property must instead be completed with your DNS provider.
 6. Keep the service to one instance: pairing codes and active transfers are held in server memory.
 7. Use the public `onrender.com` URL on both devices. They can now be on different networks.
 

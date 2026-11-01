@@ -15,7 +15,8 @@ const ROOM_LIFETIME_MS = 60 * 60 * 1000;
 const APP_DIR = __dirname;
 const RECEIVED_DIR = path.resolve(process.env.STORAGE_DIR || path.join(APP_DIR, "received"));
 const PUBLIC_SITE_ORIGIN = getConfiguredPublicOrigin();
-const GOOGLE_SITE_VERIFICATION = process.env.GOOGLE_SITE_VERIFICATION?.trim() || "";
+const GOOGLE_SITE_VERIFICATION = process.env.GOOGLE_SITE_VERIFICATION?.trim() ||
+  "M4qXQl4-UJJ-Rnh7XDmka8CMA8vp_EUvAOAB09Jp7YQ";
 const rooms = new Map();
 const transfers = new Map();
 const orphanFiles = new Map();
