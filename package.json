@@ -1,0 +1,12 @@
+{
+  "name": "airdroppulse",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A private, no-sign-in way to send files and text between devices on your local network.",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "ws": "^8.18.3"
+  }
+}

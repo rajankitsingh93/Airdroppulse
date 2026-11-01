@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#090b12">
+    <meta name="description" content="A quick, private way to move files and messages between your devices. No account needed.">
+    <title>Airdroppulse — your devices, in sync</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <div class="ambient ambient-one" aria-hidden="true"></div>
+    <div class="ambient ambient-two" aria-hidden="true"></div>
+    <div class="grid-glow" aria-hidden="true"></div>
+
+    <main class="shell">
+      <header class="topbar">
+        <a class="brand" href="/" aria-label="Airdroppulse home">
+          <span class="brand-icon" aria-hidden="true">
+            <svg viewBox="0 0 32 32" fill="none"><path d="M7 10.5h11.5a6.5 6.5 0 1 1 0 13H14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="m12 6-5 4.5 5 4.5M20 21h-5a5 5 0 1 0 0-10h-2" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+          <span>Airdrop<span class="brand-light">pulse</span></span>
+        </a>
+        <div class="topbar-right">
+          <span class="privacy-pill"><span class="privacy-dot"></span> NO ACCOUNT NEEDED</span>
+          <button class="help-button" id="help-button" type="button" aria-label="About Airdroppulse">?</button>
+        </div>
+      </header>
+
+      <section class="hero">
+        <div class="hero-copy">
+          <div class="eyebrow"><span class="eyebrow-line"></span> THE SPACE BETWEEN YOUR SCREENS</div>
+          <h1>Move it.<br><span class="gradient-text">Keep moving.</span></h1>
+          <p class="hero-description">Photos, videos, files, little thoughts. Send them between your devices in a few taps. No account, no fuss.</p>
+        </div>
+        <div class="orbit-art" aria-hidden="true">
+          <span class="orbit orbit-outer"></span>
+          <span class="orbit orbit-middle"></span>
+          <span class="orbit orbit-inner"></span>
+          <span class="orbit-node node-top">✦</span>
+          <span class="orbit-node node-side">↗</span>
+          <span class="orbit-core"><svg viewBox="0 0 48 48" fill="none"><path d="M13 16h17a8 8 0 1 1 0 16h-5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><path d="m18 11-5 5 5 5m12 11h-7a6 6 0 1 0 0-12h-2" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          <span class="orbit-caption">A little bridge<br>between devices</span>
+        </div>
+      </section>
+
+      <section class="workspace" aria-label="Connect your devices">
+        <div class="connection-card">
+          <div class="card-header">
+            <div class="step-number">01</div>
+            <div><h2>Make a connection</h2><p>Start a drop here, then join from your other device.</p></div>
+          </div>
+
+          <div class="connection-actions" id="connection-actions">
+            <button class="primary-button" id="create-button" type="button">
+              <span class="button-icon">＋</span> Create a drop <span class="button-arrow">↗</span>
+            </button>
+            <div class="join-divider"><span>OR JOIN ONE</span></div>
+            <form class="join-form" id="join-form">
+              <label class="sr-only" for="code-input">Enter the 6-digit drop code</label>
+              <input id="code-input" name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" placeholder="Enter 6-digit code" required>
+              <button class="secondary-button" type="submit" aria-label="Join drop">Join <span>→</span></button>
+            </form>
+          </div>
+
+          <div class="room-panel hidden" id="room-panel">
+            <div class="room-status"><span class="status-pulse"></span><span id="room-status-text">Your drop is ready</span></div>
+            <div class="code-display">
+              <div><span class="code-label">YOUR DROP CODE</span><strong id="room-code">------</strong></div>
+              <button class="copy-button" id="copy-button" type="button" aria-label="Copy drop code"><svg viewBox="0 0 20 20" fill="none"><rect x="7" y="7" width="9" height="10" rx="1.5" stroke="currentColor" stroke-width="1.5"/><path d="M12 7V5.5A1.5 1.5 0 0 0 10.5 4h-5A1.5 1.5 0 0 0 4 5.5v7A1.5 1.5 0 0 0 5.5 14H7" stroke="currentColor" stroke-width="1.5"/></svg><span>Copy</span></button>
+            </div>
+            <p class="room-hint" id="room-hint">Open Airdroppulse on your other device and enter this code.</p>
+            <button class="text-button" id="new-drop-button" type="button">Start over</button>
+          </div>
+
+          <div class="connection-note"><span class="lock-icon">⌑</span><span>Private to your local network. Codes expire after 1 hour.</span></div>
+        </div>
+
+        <div class="transfer-card" id="transfer-card">
+          <div class="card-header transfer-heading">
+            <div class="step-number">02</div>
+            <div><h2>Send something</h2><p>Once connected, drop files or write a quick note.</p></div>
+            <span class="ready-badge" id="ready-badge"><span></span> WAITING</span>
+          </div>
+          <div class="transfer-content" id="transfer-content" aria-disabled="true">
+            <div class="drop-zone" id="drop-zone" tabindex="0" role="button" aria-label="Choose files to send">
+              <input id="file-input" type="file" multiple hidden>
+              <div class="upload-mark"><svg viewBox="0 0 32 32" fill="none"><path d="M16 21V7m0 0-5.5 5.5M16 7l5.5 5.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M7 19v5a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+              <div class="drop-copy"><strong>Drop anything here</strong><span>or <span class="browse-link">browse files</span> · up to 250 MB each</span></div>
+              <span class="drop-file-types">FILES · PHOTOS · VIDEOS</span>
+            </div>
+            <div class="message-compose">
+              <label class="sr-only" for="message-input">Write a message</label>
+              <textarea id="message-input" rows="1" maxlength="10000" placeholder="Or leave a little note…"></textarea>
+              <button class="send-button" id="send-message-button" type="button" aria-label="Send message" disabled><svg viewBox="0 0 24 24" fill="none"><path d="m5 12 14-7-5 14-2.8-5.2L5 12Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="m11.2 13.8 3.5-3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+            </div>
+          </div>
+          <div class="transfer-disabled" id="transfer-disabled"><span class="mini-lock">⌑</span> Connect a device to start sending</div>
+        </div>
+      </section>
+
+      <section class="activity-section" aria-label="Recent activity">
+        <div class="activity-heading"><div><span class="activity-kicker">YOUR DROP</span><h2>Activity</h2></div><span class="live-label"><span></span> LIVE</span></div>
+        <div class="activity-list" id="activity-list" aria-live="polite">
+          <div class="empty-activity" id="empty-activity"><span class="empty-icon">✳</span><span>Your shared moments will show up here.</span><span>Start a drop when you're ready.</span></div>
+        </div>
+      </section>
+
+      <footer class="footer">
+        <span>AIRDROPPULSE <span class="footer-separator">/</span> MADE FOR THE MOMENTS IN BETWEEN</span>
+        <span>Files save on the computer running Airdroppulse.</span>
+      </footer>
+    </main>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <dialog class="help-dialog" id="help-dialog">
+      <button class="dialog-close" id="dialog-close" type="button" aria-label="Close">×</button>
+      <div class="eyebrow"><span class="eyebrow-line"></span> A QUICK NOTE</div>
+      <h2>Made for your own devices.</h2>
+      <p>Airdroppulse runs on the computer where it was started. Keep your phone and computer on the same Wi-Fi, then open the computer's local network address on your phone.</p>
+      <p>Files are saved on that computer in <code>received</code>. The six-digit code is a temporary pairing code, not a CAPTCHA. Only share it with someone you trust, and don't expose this app to the public internet.</p>
+      <button class="primary-button dialog-ok" id="dialog-ok" type="button">Got it</button>
+    </dialog>
+
+    <script src="/app.js" defer></script>
+  </body>
+</html>
