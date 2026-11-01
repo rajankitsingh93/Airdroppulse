@@ -16,6 +16,7 @@ const fileInput = document.querySelector("#file-input");
 const messageInput = document.querySelector("#message-input");
 const sendMessageButton = document.querySelector("#send-message-button");
 const activityList = document.querySelector("#activity-list");
+const clearAllButton = document.querySelector("#clear-all-button");
 const toast = document.querySelector("#toast");
 const helpDialog = document.querySelector("#help-dialog");
 const ACTIVITY_STORAGE_KEY = "airdroppulse.activity";
@@ -66,10 +67,13 @@ function clearRoom() {
 }
 
 function addActivity({ transferId, fileName, size, contentType, expiresAt }, save = true) {
+  if (activityList.querySelector(`[data-transfer-id="${CSS.escape(transferId)}"]`)) return;
   document.querySelector("#empty-activity")?.remove();
 
   const item = document.createElement("article");
   item.className = "activity-item";
+  item.dataset.transferId = transferId;
+  item.dataset.expiresAt = String(expiresAt);
   const icon = document.createElement("div");
   icon.className = "activity-icon";
   icon.textContent = contentType?.startsWith("image/") ? "▧" :
@@ -109,10 +113,84 @@ function addActivity({ transferId, fileName, size, contentType, expiresAt }, sav
       download.disabled = false;
     }
   });
+  const clear = document.createElement("button");
+  clear.className = "activity-clear";
+  clear.type = "button";
+  clear.textContent = "Clear";
+  clear.setAttribute("aria-label", `Clear ${fileName}`);
+  clear.addEventListener("click", async () => {
+    clear.disabled = true;
+    try {
+      await deleteActivityTransfer(transferId);
+      showToast(`${fileName} was cleared.`);
+    } catch (error) {
+      clear.disabled = false;
+      showToast(error.message || `Could not clear ${fileName}.`);
+    }
+  });
+  const actions = document.createElement("div");
+  actions.className = "activity-actions";
+  actions.append(download, clear);
   details.append(name, meta);
-  item.append(icon, details, download);
+  item.append(icon, details, actions);
   activityList.prepend(item);
+  clearAllButton.disabled = false;
   if (save) rememberActivity({ transferId, fileName, size, contentType, expiresAt });
+}
+
+function removeActivity(transferId) {
+  activityList.querySelector(`[data-transfer-id="${CSS.escape(transferId)}"]`)?.remove();
+  try {
+    const stored = JSON.parse(localStorage.getItem(ACTIVITY_STORAGE_KEY) || "[]");
+    const active = Array.isArray(stored)
+      ? stored.filter((item) => item?.transferId !== transferId && item?.expiresAt > Date.now())
+      : [];
+    localStorage.setItem(ACTIVITY_STORAGE_KEY, JSON.stringify(active));
+  } catch {
+    showToast("The file was cleared, but its recent entry couldn't be removed from this browser.");
+  }
+  if (!activityList.querySelector(".activity-item")) {
+    showEmptyActivity();
+  }
+}
+
+function showEmptyActivity() {
+  if (activityList.querySelector(".activity-item")) return;
+  const empty = document.createElement("div");
+  empty.className = "empty-activity";
+  empty.id = "empty-activity";
+  for (const text of ["✳", "Dropped files show up here.", "Connect your devices to get started."]) {
+    const span = document.createElement("span");
+    span.textContent = text;
+    if (text === "✳") span.className = "empty-icon";
+    empty.append(span);
+  }
+  activityList.append(empty);
+  clearAllButton.disabled = true;
+}
+
+async function deleteActivityTransfer(transferId) {
+  const response = await fetch(`/api/transfers/${encodeURIComponent(transferId)}`, {
+    method: "DELETE"
+  });
+  if (!response.ok) {
+    let result;
+    try {
+      result = await response.json();
+    } catch {
+      throw new Error("Airdroppulse couldn't clear this file.");
+    }
+    throw new Error(result.error || "Airdroppulse couldn't clear this file.");
+  }
+  removeActivity(transferId);
+}
+
+async function pruneExpiredActivity() {
+  for (const item of activityList.querySelectorAll(".activity-item")) {
+    if (Number(item.dataset.expiresAt) <= Date.now()) {
+      removeActivity(item.dataset.transferId);
+    }
+  }
 }
 
 function rememberActivity(activity) {
@@ -197,6 +275,8 @@ function handleSocketMessage(event) {
   } else if (message.type === "transfer-complete") {
     addActivity(message);
     showToast(`${message.fileName} is ready to download.`);
+  } else if (message.type === "transfer-deleted") {
+    removeActivity(message.transferId);
   } else if (message.type === "error") {
     createButton.disabled = false;
     showToast(message.message);
@@ -350,4 +430,34 @@ sendMessageButton.addEventListener("click", async () => {
 document.querySelector("#help-button").addEventListener("click", () => helpDialog.showModal());
 document.querySelector("#dialog-close").addEventListener("click", () => helpDialog.close());
 document.querySelector("#dialog-ok").addEventListener("click", () => helpDialog.close());
+
+clearAllButton.addEventListener("click", async () => {
+  const items = [...activityList.querySelectorAll(".activity-item")];
+  if (!items.length || !window.confirm(`Permanently delete ${items.length} stored ${items.length === 1 ? "file" : "files"}? Anyone with access to these drops will lose them.`)) {
+    return;
+  }
+
+  clearAllButton.disabled = true;
+  let cleared = 0;
+  const failures = [];
+  for (const item of items) {
+    const clearButton = item.querySelector(".activity-clear");
+    clearButton.disabled = true;
+    try {
+      await deleteActivityTransfer(item.dataset.transferId);
+      cleared += 1;
+    } catch (error) {
+      failures.push(error.message);
+      clearButton.disabled = false;
+    }
+  }
+  if (failures.length) {
+    clearAllButton.disabled = activityList.querySelectorAll(".activity-item").length === 0;
+    showToast(`${cleared} cleared; ${failures.length} couldn't be cleared. ${failures[0]}`);
+  } else {
+    showToast(`${cleared} ${cleared === 1 ? "file" : "files"} cleared.`);
+  }
+});
+
 restoreActivity();
+window.setInterval(pruneExpiredActivity, 60_000);

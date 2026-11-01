@@ -369,6 +369,34 @@ async function handleDownload(response, transferId) {
   }
 }
 
+async function handleDeleteTransfer(response, transferId) {
+  const transfer = transfers.get(transferId);
+  if (!transfer) {
+    jsonResponse(response, 200, { deleted: false });
+    return;
+  }
+
+  try {
+    await Promise.all([
+      fs.promises.rm(transfer.filePath, { force: true }),
+      fs.promises.rm(transfer.metadataPath, { force: true })
+    ]);
+  } catch (error) {
+    console.error("Could not clear a transfer:", error);
+    jsonResponse(response, 500, { error: "This file could not be cleared from storage." });
+    return;
+  }
+
+  transfers.delete(transferId);
+  storedBytes = Math.max(0, storedBytes - transfer.size);
+  for (const room of rooms.values()) {
+    if (room.transfers.delete(transferId)) {
+      notifyRoom(room, { type: "transfer-deleted", transferId });
+    }
+  }
+  jsonResponse(response, 200, { deleted: true });
+}
+
 const server = http.createServer(async (request, response) => {
   const url = new URL(request.url, "http://localhost");
   if (request.method === "GET" && url.pathname === "/api/health") {
@@ -394,6 +422,11 @@ const server = http.createServer(async (request, response) => {
   const downloadMatch = url.pathname.match(/^\/api\/transfers\/([0-9a-f-]{36})$/i);
   if (request.method === "GET" && downloadMatch) {
     await handleDownload(response, downloadMatch[1]);
+    return;
+  }
+  const deleteMatch = url.pathname.match(/^\/api\/transfers\/([0-9a-f-]{36})$/i);
+  if (request.method === "DELETE" && deleteMatch) {
+    await handleDeleteTransfer(response, deleteMatch[1]);
     return;
   }
   if (request.method !== "GET" && request.method !== "HEAD") {

@@ -76,6 +76,19 @@
           <div class="connection-note"><span class="lock-icon">⌑</span><span>Only people with your code can join. Codes expire after 1 hour.</span></div>
         </div>
 
+        <section class="activity-section" aria-label="Recent files">
+          <div class="activity-heading">
+            <div><span class="activity-kicker">LATEST DROPS</span><h2>Recent files</h2></div>
+            <div class="activity-heading-actions">
+              <button class="clear-all-button" id="clear-all-button" type="button" disabled>Clear all</button>
+              <span class="live-label"><span></span> LIVE</span>
+            </div>
+          </div>
+          <div class="activity-list" id="activity-list" aria-live="polite">
+            <div class="empty-activity" id="empty-activity"><span class="empty-icon">✳</span><span>Dropped files show up here.</span><span>Connect your devices to get started.</span></div>
+          </div>
+        </section>
+
         <div class="transfer-card" id="transfer-card">
           <div class="card-header transfer-heading">
             <div class="step-number">02</div>
@@ -96,13 +109,6 @@
             </div>
           </div>
           <div class="transfer-disabled" id="transfer-disabled"><span class="mini-lock">⌑</span> Connect a device to start sending</div>
-        </div>
-      </section>
-
-      <section class="activity-section" aria-label="Recent activity">
-        <div class="activity-heading"><div><span class="activity-kicker">YOUR DROP</span><h2>Activity</h2></div><span class="live-label"><span></span> LIVE</span></div>
-        <div class="activity-list" id="activity-list" aria-live="polite">
-          <div class="empty-activity" id="empty-activity"><span class="empty-icon">✳</span><span>Your shared moments will show up here.</span><span>Start a drop when you're ready.</span></div>
         </div>
       </section>
 

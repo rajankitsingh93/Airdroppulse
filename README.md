@@ -29,7 +29,9 @@ Files are stored temporarily on the host and are not end-to-end encrypted. Anyon
 
 - Temporary six-digit pairing codes, valid for one hour.
 - Two connected devices can send and download files, photos, videos, and text notes.
-- Transfers are automatically deleted after 24 hours.
+- Clear an individual transfer or clear all transfers immediately; clearing deletes the stored files for everyone in that drop.
+- Transfers not cleared manually are automatically deleted after 24 hours.
+- Recent files appear beside the connection panel so users can quickly see new drops.
 - Drag-and-drop, multi-file selection, copy-code button, transfer activity, and a responsive animated interface.
 - Per-item size limit of 250 MB, a 100-item limit per drop, total storage limit of 800 MB (configurable with `MAX_STORAGE_BYTES`), and a limit on repeated incorrect pairing attempts.
 
