@@ -159,6 +159,15 @@ h1 { margin: 19px 0 11px; font-size: clamp(42px, 5vw, 59px); line-height: 1.1; l
 .footer { display: flex; justify-content: space-between; gap: 12px; margin-top: 29px; padding: 14px 0 20px; border-top: 1px solid rgba(255,255,255,.06); color: #6d7187; font: 8px var(--mono); letter-spacing: .04em; }
 .footer-separator { padding: 0 5px; color: #a795f4; }
 .footer span:last-child { text-align: right; letter-spacing: 0; }
+.how-it-works { margin-top: 24px; padding: 26px; border: 1px solid var(--line); border-radius: 14px; background: linear-gradient(150deg, rgba(24, 27, 43, .76), rgba(14, 17, 27, .7)); }
+.how-it-works h2 { margin: 13px 0 8px; font-size: clamp(18px, 3vw, 23px); letter-spacing: -.7px; }
+.how-it-works > p { max-width: 760px; color: #a1a3b3; font-size: 11px; line-height: 1.8; }
+.how-it-works-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 19px 0; }
+.how-it-works-steps > div { padding: 14px; border: 1px solid rgba(189, 195, 228, .08); border-radius: 9px; background: rgba(7, 9, 17, .24); }
+.how-it-works-steps span { display: block; margin-bottom: 8px; color: #b8a8ff; font: 9px var(--mono); }
+.how-it-works-steps strong { font-size: 10px; }
+.how-it-works-steps p, .how-it-works-note { margin: 6px 0 0; color: #888da2; font-size: 9px; line-height: 1.7; }
+.how-it-works-note { max-width: 760px; }
 
 .toast { position: fixed; z-index: 5; right: 24px; bottom: 24px; max-width: min(360px, calc(100vw - 32px)); padding: 11px 15px; border: 1px solid rgba(175, 156, 255, .24); border-radius: 8px; background: #1b1b2b; color: #e8e6f4; font-size: 10px; opacity: 0; pointer-events: none; transform: translateY(8px); transition: .2s ease; box-shadow: 0 12px 40px rgba(0,0,0,.3); }
 .toast.visible { opacity: 1; transform: translateY(0); }
@@ -184,6 +193,8 @@ h1 { margin: 19px 0 11px; font-size: clamp(42px, 5vw, 59px); line-height: 1.1; l
   .orbit-art { right: 8px; top: 16px; transform: scale(.73); transform-origin: center right; opacity: .67; }
   .hero-description { max-width: 355px; }
   .workspace { grid-template-columns: 1fr; gap: 12px; }
+  .how-it-works-steps { grid-template-columns: 1fr; }
+  .how-it-works { padding: 20px; }
   .connection-card { min-height: 322px; }
   .activity-section { min-height: 230px; padding: 18px 16px; }
   .activity-list { max-height: 190px; }

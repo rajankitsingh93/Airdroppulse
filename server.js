@@ -14,6 +14,8 @@ const FILE_RETENTION_MS = 24 * 60 * 60 * 1000;
 const ROOM_LIFETIME_MS = 60 * 60 * 1000;
 const APP_DIR = __dirname;
 const RECEIVED_DIR = path.resolve(process.env.STORAGE_DIR || path.join(APP_DIR, "received"));
+const PUBLIC_SITE_ORIGIN = getConfiguredPublicOrigin();
+const GOOGLE_SITE_VERIFICATION = process.env.GOOGLE_SITE_VERIFICATION?.trim() || "";
 const rooms = new Map();
 const transfers = new Map();
 const orphanFiles = new Map();
@@ -29,6 +31,52 @@ const MIME_TYPES = {
   ".svg": "image/svg+xml",
   ".ico": "image/x-icon"
 };
+
+function getConfiguredPublicOrigin() {
+  const configuredUrl = process.env.PUBLIC_SITE_URL?.trim();
+  const renderHostname = process.env.RENDER_EXTERNAL_HOSTNAME?.trim();
+  const value = configuredUrl || (renderHostname ? `https://${renderHostname}` : "");
+  if (!value) return "";
+
+  let url;
+  try {
+    url = new URL(value);
+  } catch {
+    throw new Error("PUBLIC_SITE_URL must be a valid absolute URL.");
+  }
+  const localHttp = url.protocol === "http:" &&
+    ["localhost", "127.0.0.1"].includes(url.hostname);
+  if ((url.protocol !== "https:" && !localHttp) || url.username || url.password) {
+    throw new Error("PUBLIC_SITE_URL must use HTTPS, except for localhost development.");
+  }
+  if (url.pathname !== "/" || url.search || url.hash) {
+    throw new Error("PUBLIC_SITE_URL must be the site's origin without a path, query, or fragment.");
+  }
+  return url.origin;
+}
+
+function getPublicOrigin(request) {
+  if (PUBLIC_SITE_ORIGIN) return PUBLIC_SITE_ORIGIN;
+  const host = request.headers.host;
+  if (typeof host === "string") {
+    try {
+      return new URL(`http://${host}`).origin;
+    } catch {
+      throw new Error("The request host is invalid; configure PUBLIC_SITE_URL.");
+    }
+  }
+  return `http://localhost:${PORT}`;
+}
+
+function sendText(response, status, contentType, body, headers = {}) {
+  response.writeHead(status, {
+    "Content-Type": contentType,
+    "Content-Length": Buffer.byteLength(body),
+    "X-Content-Type-Options": "nosniff",
+    ...headers
+  });
+  response.end(body);
+}
 
 function send(socket, message) {
   if (socket.readyState === WebSocket.OPEN) {
@@ -78,12 +126,13 @@ function jsonResponse(response, status, value) {
   response.end(JSON.stringify(value));
 }
 
-function securityHeaders() {
+function securityHeaders(scriptNonce = "") {
+  const noncePolicy = scriptNonce ? ` 'nonce-${scriptNonce}'` : "";
   return {
     "X-Content-Type-Options": "nosniff",
     "Referrer-Policy": "no-referrer",
     "X-Frame-Options": "DENY",
-    "Content-Security-Policy": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' ws: wss:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'"
+    "Content-Security-Policy": `default-src 'self'; script-src 'self'${noncePolicy}; style-src 'self'; img-src 'self' data:; connect-src 'self' ws: wss:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'`
   };
 }
 
@@ -180,6 +229,36 @@ async function initializeStorage() {
 
 async function serveStatic(request, response) {
   const pathname = new URL(request.url, "http://localhost").pathname;
+  const publicOrigin = getPublicOrigin(request);
+  if (pathname === "/robots.txt") {
+    const body = [
+      "User-agent: *",
+      "Allow: /",
+      "Disallow: /api/",
+      "Disallow: /ws",
+      `Sitemap: ${publicOrigin}/sitemap.xml`,
+      ""
+    ].join("\n");
+    sendText(response, 200, "text/plain; charset=utf-8", body, {
+      "Cache-Control": "public, max-age=3600",
+      ...securityHeaders()
+    });
+    return;
+  }
+  if (pathname === "/sitemap.xml") {
+    const body = [
+      '<?xml version="1.0" encoding="UTF-8"?>',
+      '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+      `  <url><loc>${publicOrigin}/</loc></url>`,
+      "</urlset>",
+      ""
+    ].join("\n");
+    sendText(response, 200, "application/xml; charset=utf-8", body, {
+      "Cache-Control": "public, max-age=3600",
+      ...securityHeaders()
+    });
+    return;
+  }
   const requestedPath = pathname === "/" ? "/index.html" : pathname;
   const filePath = path.resolve(APP_DIR, `.${requestedPath}`);
 
@@ -193,6 +272,24 @@ async function serveStatic(request, response) {
     const stat = await fs.promises.stat(filePath);
     if (!stat.isFile()) {
       jsonResponse(response, 404, { error: "Not found." });
+      return;
+    }
+
+    if (path.resolve(filePath) === path.join(APP_DIR, "index.html")) {
+      let html = await fs.promises.readFile(filePath, "utf8");
+      const scriptNonce = crypto.randomBytes(18).toString("base64");
+      html = html.replaceAll("__PUBLIC_ORIGIN__", publicOrigin);
+      html = html.replaceAll("__CSP_NONCE__", scriptNonce);
+      if (GOOGLE_SITE_VERIFICATION && !/^[A-Za-z0-9_-]+$/.test(GOOGLE_SITE_VERIFICATION)) {
+        throw new Error("GOOGLE_SITE_VERIFICATION must contain only letters, numbers, underscores, or hyphens.");
+      }
+      html = GOOGLE_SITE_VERIFICATION
+        ? html.replace("__GOOGLE_SITE_VERIFICATION__", GOOGLE_SITE_VERIFICATION)
+        : html.replace(/^\s*<meta name="google-site-verification"[^>]*>\r?\n/m, "");
+      sendText(response, 200, "text/html; charset=utf-8", html, {
+        "Cache-Control": "no-cache",
+        ...securityHeaders(scriptNonce)
+      });
       return;
     }
 
