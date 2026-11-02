@@ -16,7 +16,7 @@ const APP_DIR = __dirname;
 const RECEIVED_DIR = path.resolve(process.env.STORAGE_DIR || path.join(APP_DIR, "received"));
 const PUBLIC_SITE_ORIGIN = getConfiguredPublicOrigin();
 const GOOGLE_SITE_VERIFICATION = process.env.GOOGLE_SITE_VERIFICATION?.trim() ||
-  "M4qXQl4-UJJ-Rnh7XDmka8CMA8vp_EUvAOAB09Jp7YQ";
+  "Saq260EMPWj4NAktSeOLfLCRqI-bujVGpyDXY-WLvuM";
 const rooms = new Map();
 const transfers = new Map();
 const orphanFiles = new Map();
@@ -284,9 +284,10 @@ async function serveStatic(request, response) {
       if (GOOGLE_SITE_VERIFICATION && !/^[A-Za-z0-9_-]+$/.test(GOOGLE_SITE_VERIFICATION)) {
         throw new Error("GOOGLE_SITE_VERIFICATION must contain only letters, numbers, underscores, or hyphens.");
       }
-      html = GOOGLE_SITE_VERIFICATION
-        ? html.replace("__GOOGLE_SITE_VERIFICATION__", GOOGLE_SITE_VERIFICATION)
-        : html.replace(/^\s*<meta name="google-site-verification"[^>]*>\r?\n/m, "");
+      html = html.replace(
+        /(<meta name="google-site-verification" content=")[^"]*(">)/,
+        `$1${GOOGLE_SITE_VERIFICATION}$2`
+      );
       sendText(response, 200, "text/html; charset=utf-8", html, {
         "Cache-Control": "no-cache",
         ...securityHeaders(scriptNonce)
