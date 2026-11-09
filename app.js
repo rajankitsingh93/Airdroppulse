@@ -20,6 +20,7 @@ const clearAllButton = document.querySelector("#clear-all-button");
 const toast = document.querySelector("#toast");
 const helpDialog = document.querySelector("#help-dialog");
 const ACTIVITY_STORAGE_KEY = "airdroppulse.activity";
+const MAX_FILE_BYTES = 50 * 1024 * 1024;
 
 let socket;
 let currentCode = "";
@@ -338,8 +339,8 @@ async function sendBlob(blob, fileName) {
     showToast("Connect both devices before sending.");
     return false;
   }
-  if (blob.size > 250 * 1024 * 1024) {
-    showToast(`${fileName} is larger than the 250 MB limit.`);
+  if (blob.size > MAX_FILE_BYTES) {
+    showToast(`${fileName} is larger than the 50 MB limit.`);
     return false;
   }
 

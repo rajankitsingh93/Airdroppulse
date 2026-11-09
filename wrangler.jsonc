@@ -1,0 +1,28 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "airdroppulse",
+  "main": "cloudflare/worker.js",
+  "compatibility_date": "2026-06-26",
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "run_worker_first": true
+  },
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "DROP_ROOM",
+        "class_name": "DropRoom"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["DropRoom"]
+    }
+  ],
+  "observability": {
+    "enabled": true
+  }
+}

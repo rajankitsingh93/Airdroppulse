@@ -13,21 +13,25 @@ Airdroppulse is a no-sign-in way to send files and text between devices. The sen
 
 For internet access from anywhere, deploy the app behind HTTPS with a persistent storage volume and set `STORAGE_DIR` to that volume's mount path. Keep the volume private; the app controls access to downloads using the active pairing code. Do not expose the server over plain HTTP on the public internet.
 
-### Public hosting on Render
+### Cloudflare Workers deployment
 
-1. Create a Render **Web Service** from the `main` branch of this repository. Use `npm ci` as the build command and `npm start` as the start command. Render provides HTTPS for the public site.
-2. Attach a persistent disk of at least 1 GB mounted at `/var/data`.
-3. Set `STORAGE_DIR` to `/var/data` and `MAX_STORAGE_BYTES` to `838860800` (800 MiB).
-4. Set `PUBLIC_SITE_URL` to the exact HTTPS Render service URL (for example, `https://your-service.onrender.com`). This is used for the canonical URL, sitemap, and robots file.
-5. To verify a URL-prefix property in Google Search Console using the HTML meta-tag method, put the verification token Google gives you in the `google-site-verification` meta tag in `index.html`, then upload or redeploy the updated site. The current tag contains the latest token provided for Airdroppulse. For the Node.js server, `GOOGLE_SITE_VERIFICATION` can override the token at runtime. DNS verification for a Domain property must instead be completed with your DNS provider.
-6. Keep the service to one instance: pairing codes and active transfers are held in server memory.
-7. Use the public `onrender.com` URL on both devices. They can now be on different networks.
+The Cloudflare Worker serves the static site and runs the WebSocket/API backend. The backend uses a SQLite-backed Durable Object for pairing, temporary file storage, and 24-hour cleanup. A static-asset-only deployment does not support transfers.
 
-Render persistent disks require a paid web service. Check the current plan and disk price in Render before creating it. A free service has ephemeral storage and is not suitable for keeping uploaded files. No hosting service is created automatically by this repository.
+For Git-based automatic deployments, connect this repository's `main` branch to a Cloudflare Worker build and use:
+
+- Build command: `npm run build`
+- Deploy command: `npx wrangler deploy`
+- Root directory: the repository root
+
+The `wrangler.jsonc` configuration creates the Durable Object binding and its initial migration. For a local deployment, install dependencies, run `npx wrangler login`, then run `npm run deploy:cloudflare`. Keep the Worker on a plan that supports Durable Objects and check Cloudflare's current limits and pricing.
+
+Use the Worker's `workers.dev` HTTPS URL on both devices. Each file can be up to 50 MB; total stored data is limited to 800 MiB and files expire after 24 hours.
+
+The Node.js server can still be run locally with `npm start`; it is not the backend for a static Cloudflare deployment.
 
 ### Google Search Console and indexing
 
-After the public HTTPS site is live, add its exact URL as a URL-prefix property in [Google Search Console](https://search.google.com/search-console). For HTML-tag verification, follow Google's [site ownership verification steps](https://support.google.com/webmasters/answer/9008080). The verification meta tag is included directly in `index.html`, so upload or redeploy the updated site to Cloudflare, then return to Search Console and click **Verify**. If using the Node.js server, set `GOOGLE_SITE_VERIFICATION` to the token and restart the server. Verification and indexing do not guarantee search ranking or a top result.
+After the public HTTPS site is live, add its exact URL as a URL-prefix property in [Google Search Console](https://search.google.com/search-console). For HTML-tag verification, follow Google's [site ownership verification steps](https://support.google.com/webmasters/answer/9008080). The verification meta tag is included directly in `index.html`; after changing it, redeploy the Worker and click **Verify**. The app serves `/robots.txt` and `/sitemap.xml` on the public origin; submit that sitemap in Search Console. Verification and indexing do not guarantee search ranking or a top result.
 
 Files are stored temporarily on the host and are not end-to-end encrypted. Anyone with the six-digit code can join that drop, so only share it with the intended receiver.
 
@@ -39,6 +43,6 @@ Files are stored temporarily on the host and are not end-to-end encrypted. Anyon
 - Transfers not cleared manually are automatically deleted after 24 hours.
 - Recent files appear beside the connection panel so users can quickly see new drops.
 - Drag-and-drop, multi-file selection, copy-code button, transfer activity, and a responsive animated interface.
-- Per-item size limit of 250 MB, a 100-item limit per drop, total storage limit of 800 MB (configurable with `MAX_STORAGE_BYTES`), and a limit on repeated incorrect pairing attempts.
+- Per-item size limit of 50 MB on Cloudflare Workers (250 MB on the Node.js server), a 100-item limit per drop, an 800 MiB Cloudflare storage limit, and a limit on repeated incorrect pairing attempts.
 
-The server must remain online while transferring. Pairing information is kept in memory and is cleared when the app restarts.
+The Cloudflare Worker and its Durable Object must remain available while transferring. On the local Node.js server, pairing information is kept in memory and is cleared when the server restarts.

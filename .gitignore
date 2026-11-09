@@ -1,4 +1,6 @@
 node_modules/
+.wrangler/
+dist/
 received/
 .env
 .env.*
